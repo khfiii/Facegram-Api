@@ -40,9 +40,6 @@ class PostController extends Controller
             'posts' => $posts->items()
         ], 200);
 
-
-
-
     }
 
     public function create(Request $request)
