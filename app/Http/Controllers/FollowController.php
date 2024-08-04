@@ -22,7 +22,7 @@ class FollowController extends Controller
         $isFollowing = $request->user()->followings()->where('following_id', $user->id)->exists();
         $isPublic = !$user->is_private;
 
-        if($isFollowing){
+        if ($isFollowing) {
             $followingUser = $request->user()->followings()->where('following_id', $user->id)->first();
             return response()->json([
                 'message' => 'You are already followed',
@@ -38,7 +38,89 @@ class FollowController extends Controller
         ], 200);
     }
 
-    public function status(bool $status){
+    public function unfollow($username, Request $request)
+    {
+        $user = User::where('username', $username)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        if ($user->id == $request->user()->id) {
+            return response()->json(['message' => 'You are not allowed to unfollow yourself'], 422);
+        }
+
+        $isNotFollowing = $request->user()->followings()->where('following_id', $user->id)->doesntExist();
+
+        if($isNotFollowing){
+            return response()->json(['message' => 'You are not following the user'], 422);
+        }
+
+        $request->user()->followings()->detach($user->id);
+
+        return response()->json(422);
+
+    }
+
+    public function following($username, Request $request){
+        $user = User::where('username', $username)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $formated = $user->followings->map(function($item){
+            return [
+                'id' => $item->id,
+                'full_name' => $item->full_name,
+                'username' => $item->username,
+                'bio' => $item->bio,
+                'is_private' => $item->is_private,
+                'created_at' => $item->created_at,
+                'is_accepted' => $item->pivot->is_accepted
+            ];
+        });
+
+        return response()->json(['following' => $formated], 200);
+
+    }
+
+    public function accept($username, Request $request){
+
+        $user = User::where('username', $username)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        if($user->id == $request->user()->id){
+            return response()->json(['message' => 'You are cannot accept your own follow request'], 422);
+        }
+
+        $baseQuery = $user->followers()->where('follower_id', $request->user()->id);
+
+        $isFollowing = $baseQuery->exists();
+
+        if(!$isFollowing){
+            return response()->json(['message' => 'The user is not following you'], 422);
+        }
+
+        $followRequest = $baseQuery->wherePivot('is_accepted', 0)->first();
+
+
+        if(!$followRequest){
+            return response()->json(['message' => 'Follow request is already accepted']);
+        }
+
+        $user->followers()->updateExistingPivot($request->user()->id, ['is_accepted' => true]);
+
+
+        return response()->json(['message' => 'Follow request accepted'], 200);
+
+    }
+
+    public function status(bool $status)
+    {
         return $status ? 'Following' : 'Requested';
     }
 }
