@@ -21,7 +21,6 @@ Route::prefix('v1')->group(function(){
         Route::post('posts', [PostController::class, 'create']);
         Route::delete('posts/{id}', [PostController::class, 'delete']);
         Route::get('posts', [PostController::class, 'index']);
-
         Route::post('users/{username}/follow', [FollowController::class, 'follow']);
     });
 });
