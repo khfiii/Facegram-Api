@@ -25,5 +25,8 @@ Route::prefix('v1')->group(function(){
         Route::delete('users/{username}/unfollow', [FollowController::class, 'unfollow']);
         Route::get('users/{username}/following', [FollowController::class, 'following']);
         Route::put('users/{username}/accept', [FollowController::class, 'accept']);
+        Route::get('users/{username}/followers', [FollowController::class, 'followers']);
+        Route::get('users', [FollowController::class, 'users']);
+        Route::get('users/{username}', [FollowController::class, 'userDetail']);
     });
 });

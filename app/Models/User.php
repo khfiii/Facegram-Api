@@ -63,4 +63,8 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(User::class,'follow', 'following_id', 'follower_id')->withPivot('is_accepted');
     }
+
+    public function posts(): HasMany{
+        return $this->hasMany(Post::class, 'user_id');
+    }
 }

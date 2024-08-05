@@ -119,6 +119,50 @@ class FollowController extends Controller
 
     }
 
+    public function followers($username, Request $request){
+        $user = User::where('username', $username)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $formated = $user->followers->map(function($item){
+            return [
+                'id' => $item->id,
+                'full_name' => $item->full_name,
+                'username' => $item->username,
+                'bio' => $item->bio,
+                'is_private' => $item->is_private,
+                'created_at' => $item->created_at,
+                'is_accepted' => $item->pivot->is_accepted
+            ];
+        });
+
+        return response()->json(['followers' => $formated], 200);
+
+    }
+
+    public function users(Request $request){
+
+        $followingUsersID = $request->user()->followings()->pluck('following_id');
+
+        $listNotFollowingUser = User::whereNotIn('id', $followingUsersID)->where('id', '!=', $request->user()->id)->get();
+
+        return response()->json(['users' => $listNotFollowingUser], 200);
+    }
+
+    public function userDetail($username){
+        $user = User::where('username', $username)->withCount('followers', 'followings', 'posts')->with('posts.postAttachments')->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        return $user;
+
+
+    }
+
     public function status(bool $status)
     {
         return $status ? 'Following' : 'Requested';
