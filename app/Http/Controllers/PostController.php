@@ -71,10 +71,10 @@ class PostController extends Controller
 
             foreach($request->attachments as $attachment){
                 $postAttachment = new PostAttachment();
-                $postAttachment->storage_path = 'posts/'.$attachment->getClientOriginalName();
+                $postAttachment->storage_path = 'posts/'.$attachment->hashName();
                 $postAttachment->post_id = $post->id;
                 $postAttachment->save();
-                $attachment->store('public');
+                $attachment->store('posts');
             }
 
             DB::commit();
